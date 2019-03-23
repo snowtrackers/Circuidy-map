@@ -83,7 +83,7 @@
         }
 
         function initWS() {
-            var exampleSocket = new WebSocket("ws://localhost:1337");
+            var exampleSocket = new WebSocket("ws://" + document.domain + ":1337");
             exampleSocket.onopen = function (event) {
                 console.log("Connecté");
             }
