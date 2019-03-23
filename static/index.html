@@ -75,7 +75,7 @@
             // create the tile layer with correct attribution
             var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
             var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
-            var osm = new L.TileLayer(osmUrl, {minZoom: 8, maxZoom: 12, attribution: osmAttrib});
+            var osm = new L.TileLayer(osmUrl, {minZoom: 8, maxZoom: 20, attribution: osmAttrib});
 
             // start the map in South-East England
             map.setView(new L.LatLng(49.3, 0.1),11);
@@ -91,7 +91,7 @@
                 var myData = JSON.parse(event.data);
                 data.push( myData );
                 var myMain = document.createElement("div");
-                myMain.innerHTML = "<ul><li>Type : " + myData.type + "</li><li>Date : " + myData.date + "</li><li>Message : " + myData.message + "</li><li>Latitude : " + myData.lat + "</li><li>Longitude : " + myData.lon + "</li></ul>"
+                myMain.innerHTML = "<ul><li>Type : " + myData.type + "</li><li>Date : " + new Date(parseInt(myData.date)).toUTCString() + "</li><li>Message : " + myData.message + "</li><li>Latitude : " + myData.lat + "</li><li>Longitude : " + myData.lon + "</li></ul>"
 
                 var myIconDisplay = "";
                 if( myData.type == "DANGER" ) {
