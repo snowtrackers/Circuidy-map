@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Circuidy - Backend</title>
+    <link rel="stylesheet" type="text/css" href="/public/leaflet/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: Arial;
+        }
+        .flex {
+            display: flex;
+        }
+        .flex-column {
+            flex-direction: column;
+        }
+        .flex-row {
+            flex-direction: row;
+        }
+
+        .notifications {
+            color: #113140;
+            flex-grow: 1;
+            background: white;
+        }
+
+        .notifications div {
+            margin: 8px;
+            margin-left: 16px;
+        }
+
+        .notifications div:nth-child(odd) {
+            background: #ddd;
+        }
+
+        .center {
+            flex-basis: 75vw;
+        }
+
+        .title {
+            text-align: center;
+            color:white;
+            padding: 16px;
+            background: #39A9DC;
+        }
+        .map {
+            flex-grow: 1;
+            height: 80vw;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex flex-row">
+        <div class="flex flex-column center">
+            <div class="title">
+                <h1>Circuidy Admin Map</h1>
+            </div>
+            <div class="map" id="map"></div>
+        </div>
+        <div id="notifications" class="notifications"></div>
+    </div>
+
+    <script type="text/javascript" src="/public/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map;
+
+        var data = [];
+
+        function initMap() {
+            // set up the map
+            map = new L.Map('map');
+
+            // create the tile layer with correct attribution
+            var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+            var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+            var osm = new L.TileLayer(osmUrl, {minZoom: 8, maxZoom: 12, attribution: osmAttrib});
+
+            // start the map in South-East England
+            map.setView(new L.LatLng(49.3, 0.1),11);
+            map.addLayer(osm);
+        }
+
+        function initWS() {
+            var exampleSocket = new WebSocket("ws://localhost:1337");
+            exampleSocket.onopen = function (event) {
+                console.log("Connecté");
+            }
+            exampleSocket.onmessage = function (event) {
+                var myData = JSON.parse(event.data);
+                data.push( myData );
+                var myMain = document.createElement("div");
+                myMain.innerHTML = "<ul><li>Type : " + myData.type + "</li><li>Date : " + myData.date + "</li><li>Message : " + myData.message + "</li><li>Latitude : " + myData.lat + "</li><li>Longitude : " + myData.lon + "</li></ul>"
+
+                var myIconDisplay = "";
+                if( myData.type == "DANGER" ) {
+                    myIconDisplay = '/static/icon-danger.png';
+                }
+                else if( myData.type == "DUSTBIN" ) {
+                    myIconDisplay = '/static/icon-dustbin.png';
+                }
+                else if( myData.type == "SMILE" ) {
+                    myIconDisplay = '/static/icon-smile.png';
+                }
+
+                var icon = L.icon({
+                    iconUrl: myIconDisplay,
+
+                    iconSize:     [50, 72], // size of the icon
+                    iconAnchor:   [25, 72], // point of the icon which will correspond to marker's location
+                });
+                L.marker([ myData.lat, myData.lon ], {icon: icon}).addTo(map);
+
+                document.getElementById("notifications").prepend( myMain );
+            }
+        }
+
+        initMap();
+        initWS();
+    </script>
+</body>
+</html>

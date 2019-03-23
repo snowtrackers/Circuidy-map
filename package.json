@@ -1,0 +1,27 @@
+{
+  "name": "circuidy-map",
+  "version": "1.0.0",
+  "description": "Map backend for Circuidy app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/snowtrackers/Circuidy-map.git"
+  },
+  "author": "Snwotrackers",
+  "license": "AGPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/snowtrackers/Circuidy-map/issues"
+  },
+  "homepage": "https://github.com/snowtrackers/Circuidy-map#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "fs": "0.0.1-security",
+    "leaflet": "^1.4.0",
+    "websocket": "^1.0.28"
+  }
+}
