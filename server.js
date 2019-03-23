@@ -61,6 +61,13 @@ app.post('/notifications', function (req, res) {
 
 app.use('/public', express.static(__dirname + '/node_modules'))
 app.use('/static', express.static(__dirname + '/static'))
+
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
 app.listen(3000, function () {
     console.log('Running !')
 })
