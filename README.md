@@ -21,4 +21,7 @@ Just send POST request like that :
    - DANGER
    - DUSTBIN
    - SMILE
+   - BAD_ROAD
+   - BROKEN_SIGN
+   - APPLE
  - message : Message to accompagne notification
