@@ -7,10 +7,18 @@ const app = express();
 
 var fs = require('fs');
 
+//********************************
+
+var dataNotif = [];
+var dataPosition = [];
+
+
+//********************************
 var server = http.createServer(function(request, response) {
     // process HTTP request. Since we're writing just WebSockets
     // server we don't have to implement anything.
 });
+
 server.listen(1337, function() { });
 
 // create the server
@@ -26,9 +34,17 @@ wsServer.on('request', function(request) {
     // This is the most important callback for us, we'll handle
     // all messages from users here.
     connection.on('message', function(message) {
-        if (message.type === 'utf8') {
-            // process WebSocket message
-        }
+        var myData = JSON.parse(message.utf8Data);
+        dataNotif.filter( function (item) {
+            return item.date.getFullYear() + "-" + item.date.getMonth() + "-" + item.date.getDate() == myData.begin;
+        }).forEach( function (item) {
+            wsServer.broadcast( JSON.stringify(item));
+        })
+        dataPosition.filter( function (item) {
+            return item.date.getFullYear() + "-" + item.date.getMonth() + "-" + item.date.getDate() == myData.begin;
+        }).forEach( function (item) {
+            wsServer.broadcast( JSON.stringify(item));
+        })
     });
 
     connection.on('close', function(connection) {
@@ -52,7 +68,34 @@ app.post('/notifications', function (req, res) {
                 lat: req.query.lat,
                 lon: req.query.lon,
                 date: Date.now().toString()
-            }))
+            }));
+            dataNotif.push({
+                type: req.query.type,
+                message: req.query.message,
+                lat: req.query.lat,
+                lon: req.query.lon,
+                date: Date.now()
+            });
+            res.status(200).end();
+        }
+    }
+    res.status(400).end();
+});
+
+app.post('/positions', function (req, res) {
+    console.log( req.query );
+    if( req.query.lat !== undefined && req.query.lon !== undefined ) {
+        if( wsServer !== undefined ) {
+            wsServer.broadcast( JSON.stringify({
+                lat: req.query.lat,
+                lon: req.query.lon,
+                date: Date.now().toString()
+            }));
+            dataPosition.push({
+                lat: req.query.lat,
+                lon: req.query.lon,
+                date: Date.now()
+            });
             res.status(200).end();
         }
     }

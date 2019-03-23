@@ -59,14 +59,23 @@
             </div>
             <div class="map" id="map"></div>
         </div>
-        <div id="notifications" class="notifications"></div>
+        <div class="flex flex-column">
+            <div>
+                <h2>Filtre :</h2>
+                Debut : <input type="date" id="begin"> / Fin : <input type="date" id="end"> <button type="button" id="filterButton">Valider</button> <button type="button" id="clear">Clear</button>
+                <h2>Notification :</h2>
+            </div>
+            <div id="notifications" class="notifications"></div>
+        </div>
     </div>
 
     <script type="text/javascript" src="/public/leaflet/dist/leaflet.js"></script>
     <script>
         var map;
 
-        var data = [];
+        var dataNotif = [];
+        var dataPosition = [];
+        var websocket = undefined;
 
         function initMap() {
             // set up the map
@@ -83,47 +92,88 @@
         }
 
         function initWS() {
-            var exampleSocket = new WebSocket("ws://" + document.domain + ":1337");
-            exampleSocket.onopen = function (event) {
+            websocket = new WebSocket("ws://" + document.domain + ":1337");
+            websocket.onopen = function (event) {
                 console.log("Connecté");
             }
-            exampleSocket.onmessage = function (event) {
+            websocket.onmessage = function (event) {
                 var myData = JSON.parse(event.data);
-                data.push( myData );
-                var myMain = document.createElement("div");
-                myMain.innerHTML = "<ul><li>Type : " + myData.type + "</li><li>Date : " + new Date(parseInt(myData.date)).toUTCString() + "</li><li>Message : " + myData.message + "</li><li>Latitude : " + myData.lat + "</li><li>Longitude : " + myData.lon + "</li></ul>"
 
-                var myIconDisplay = "";
-                if( myData.type == "DANGER" ) {
-                    myIconDisplay = '/static/icon-danger.png';
+                if( myData.type !== undefined ) {
+                    dataNotif.push( myData );
+                    var myMain = document.createElement("div");
+                    myMain.innerHTML = "<ul><li>Type : " + myData.type + "</li><li>Date : " + new Date(parseInt(myData.date)).toUTCString() + "</li><li>Message : " + myData.message + "</li><li>Latitude : " + myData.lat + "</li><li>Longitude : " + myData.lon + "</li></ul>"
+
+                    var myIconDisplay = "";
+                    if( myData.type == "DANGER" ) {
+                        myIconDisplay = '/static/icon-danger.png';
+                    }
+                    else if( myData.type == "DUSTBIN" ) {
+                        myIconDisplay = '/static/icon-dustbin.png';
+                    }
+                    else if( myData.type == "SMILE" ) {
+                        myIconDisplay = '/static/icon-smile.png';
+                    }
+                    else if( myData.type == "BAD_ROAD" ) {
+                        myIconDisplay = '/static/icon-bad-road.png';
+                    }
+                    else if( myData.type == "BROKEN_SIGN" ) {
+                        myIconDisplay = '/static/icon-broken-sign.png';
+                    }
+                    else if( myData.type == "APPLE" ) {
+                        myIconDisplay = '/static/icon-apple.png';
+                    }
+
+                    var icon = L.icon({
+                        iconUrl: myIconDisplay,
+
+                        iconSize:     [50, 72], // size of the icon
+                        iconAnchor:   [25, 72], // point of the icon which will correspond to marker's location
+                    });
+                    dataNotif.push( L.marker([ myData.lat, myData.lon ], {icon: icon}).addTo(map) );
+
+                    document.getElementById("notifications").prepend( myMain );
                 }
-                else if( myData.type == "DUSTBIN" ) {
-                    myIconDisplay = '/static/icon-dustbin.png';
-                }
-                else if( myData.type == "SMILE" ) {
-                    myIconDisplay = '/static/icon-smile.png';
-                }
-                else if( myData.type == "BAD_ROAD" ) {
-                    myIconDisplay = '/static/icon-bad-road.png';
-                }
-                else if( myData.type == "BROKEN_SIGN" ) {
-                    myIconDisplay = '/static/icon-broken-sign.png';
-                }
-                else if( myData.type == "APPLE" ) {
-                    myIconDisplay = '/static/icon-apple.png';
+                else {
+                    dataPosition.push( L.circle([myData.lat, myData.lon], {
+                        color: 'red',
+                        fillColor: '#f03',
+                        fillOpacity: 0.5,
+                        radius: 50
+                    }).addTo(map) );
                 }
 
-                var icon = L.icon({
-                    iconUrl: myIconDisplay,
-
-                    iconSize:     [50, 72], // size of the icon
-                    iconAnchor:   [25, 72], // point of the icon which will correspond to marker's location
-                });
-                L.marker([ myData.lat, myData.lon ], {icon: icon}).addTo(map);
-
-                document.getElementById("notifications").prepend( myMain );
             }
         }
+
+        document.getElementById("filterButton").onclick = function() {
+            var myBegin = Date.parse(document.getElementById("begin").value);
+            var myEnd = Date.parse(document.getElementById("end").value);
+
+            if( myBegin > myEnd ) {
+                alert("Dates invalides");
+                return;
+            }
+
+            if( websocket !== undefined ) {
+                websocket.send( JSON.stringify({
+                    begin: myBegin,
+                    end: myEnd
+                }) );
+            }
+        };
+
+        function clear() {
+            for( var i = 0; i < dataPosition.length; i++) {
+                map.removeLayer( dataPosition[i] )
+            }
+            for( var i = 0; i < dataNotif.length; i++) {
+                map.removeLayer( dataNotif[i] )
+            }
+        }
+        document.getElementById("clear").onclick = function() {
+            clear();
+        };
 
         initMap();
         initWS();
